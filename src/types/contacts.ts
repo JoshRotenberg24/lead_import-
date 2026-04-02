@@ -31,6 +31,12 @@ export interface Contact {
   note?: string; // Notes/description
   source?: string; // Lead source
 
+  // New fields for better CRM tracking
+  engagementRating?: string; // Hot/Warm/Cold
+  dateMet?: string; // When you met them (ISO date)
+  dateCreated?: string; // When lead was created (ISO date)
+  leadSource?: string; // Where lead came from
+
   // Metadata
   id?: string; // Internal ID if from AgentWebsite
   createdAt?: string;
@@ -67,6 +73,10 @@ export interface AgentWebsiteContact {
   MarketIDs?: string;
   Note?: string;
   Source?: string;
+  EngagementRating?: string;
+  DateMet?: string;
+  DateCreated?: string;
+  LeadSource?: string;
 }
 
 /**
@@ -90,6 +100,10 @@ export const CSV_TEMPLATE_HEADERS = [
   'MarketIDs',
   'Note',
   'Source',
+  'LeadSource',
+  'EngagementRating',
+  'DateMet',
+  'DateCreated',
 ];
 
 /**

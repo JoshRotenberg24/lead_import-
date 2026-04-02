@@ -1,7 +1,10 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Contact } from '@/types/contacts';
+import MultiSelectDropdown from './MultiSelectDropdown';
+import { getOptions, addOption } from '@/lib/dropdownOptions';
+import type { DropdownOptions } from '@/lib/dropdownOptions';
 
 interface LeadFormProps {
   onAddLead: (lead: Contact) => void;
@@ -9,11 +12,18 @@ interface LeadFormProps {
 }
 
 export default function LeadForm({ onAddLead, isLoading = false }: LeadFormProps) {
+  const [options, setOptions] = useState<DropdownOptions>({
+    tags: [],
+    sources: [],
+    engagementRatings: [],
+    campaignIds: [],
+    marketIds: [],
+    types: [],
+  });
+
   const [formData, setFormData] = useState<Contact>({
     name: '',
     email: '',
-    firstName: '',
-    lastName: '',
     phone: '',
     address: '',
     city: '',
@@ -29,11 +39,16 @@ export default function LeadForm({ onAddLead, isLoading = false }: LeadFormProps
     marketIds: [],
     note: '',
     source: '',
+    engagementRating: '',
+    dateMet: '',
+    dateCreated: '',
+    leadSource: '',
   });
 
-  const [tagsInput, setTagsInput] = useState('');
-  const [campaignInput, setCampaignInput] = useState('');
-  const [marketInput, setMarketInput] = useState('');
+  // Load options from localStorage on mount
+  useEffect(() => {
+    setOptions(getOptions());
+  }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -41,6 +56,66 @@ export default function LeadForm({ onAddLead, isLoading = false }: LeadFormProps
       ...prev,
       [name]: value,
     }));
+  };
+
+  const handleTagsChange = (selected: string[]) => {
+    setFormData((prev) => ({
+      ...prev,
+      tags: selected,
+    }));
+  };
+
+  const handleSourcesChange = (selected: string[]) => {
+    setFormData((prev) => ({
+      ...prev,
+      leadSource: selected[0] || '', // Single select
+    }));
+  };
+
+  const handleEngagementChange = (selected: string[]) => {
+    setFormData((prev) => ({
+      ...prev,
+      engagementRating: selected[0] || '', // Single select
+    }));
+  };
+
+  const handleCampaignChange = (selected: string[]) => {
+    setFormData((prev) => ({
+      ...prev,
+      campaignIds: selected,
+    }));
+  };
+
+  const handleMarketChange = (selected: string[]) => {
+    setFormData((prev) => ({
+      ...prev,
+      marketIds: selected,
+    }));
+  };
+
+  const handleAddNewTag = (value: string) => {
+    addOption('tags', value);
+    setOptions(getOptions());
+  };
+
+  const handleAddNewSource = (value: string) => {
+    addOption('sources', value);
+    setOptions(getOptions());
+  };
+
+  const handleAddNewEngagement = (value: string) => {
+    addOption('engagementRatings', value);
+    setOptions(getOptions());
+  };
+
+  const handleAddNewCampaign = (value: string) => {
+    addOption('campaignIds', value);
+    setOptions(getOptions());
+  };
+
+  const handleAddNewMarket = (value: string) => {
+    addOption('marketIds', value);
+    setOptions(getOptions());
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -55,22 +130,20 @@ export default function LeadForm({ onAddLead, isLoading = false }: LeadFormProps
       return;
     }
 
+    // Set current date for dateCreated if not set
     const lead: Contact = {
       ...formData,
       name: formData.name.trim(),
       email: formData.email.trim(),
-      tags: tagsInput ? tagsInput.split(',').map((t) => t.trim()).filter((t) => t) : undefined,
-      campaignIds: campaignInput ? campaignInput.split(',').map((c) => c.trim()).filter((c) => c) : undefined,
-      marketIds: marketInput ? marketInput.split(',').map((m) => m.trim()).filter((m) => m) : undefined,
+      dateCreated: formData.dateCreated || new Date().toISOString().split('T')[0],
     };
 
     onAddLead(lead);
 
+    // Reset form
     setFormData({
       name: '',
       email: '',
-      firstName: '',
-      lastName: '',
       phone: '',
       address: '',
       city: '',
@@ -86,10 +159,11 @@ export default function LeadForm({ onAddLead, isLoading = false }: LeadFormProps
       marketIds: [],
       note: '',
       source: '',
+      engagementRating: '',
+      dateMet: '',
+      dateCreated: '',
+      leadSource: '',
     });
-    setTagsInput('');
-    setCampaignInput('');
-    setMarketInput('');
   };
 
   const FormField = ({ label, required, children }: { label: string; required?: boolean; children: React.ReactNode }) => (
@@ -143,6 +217,48 @@ export default function LeadForm({ onAddLead, isLoading = false }: LeadFormProps
             onChange={handleChange}
             placeholder="e.g., john@example.com"
             required
+          />
+        </div>
+      </div>
+
+      {/* CRM Fields Section */}
+      <div className="mb-8">
+        <h3 className="text-sm font-semibold text-gray-900 mb-4 flex items-center gap-2">
+          <span>📊</span> Lead Information
+        </h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+          <MultiSelectDropdown
+            label="Lead Source"
+            options={options.sources}
+            selected={formData.leadSource ? [formData.leadSource] : []}
+            onSelectionChange={handleSourcesChange}
+            onAddNew={handleAddNewSource}
+            placeholder="Select lead source..."
+          />
+
+          <MultiSelectDropdown
+            label="Engagement Rating"
+            options={options.engagementRatings}
+            selected={formData.engagementRating ? [formData.engagementRating] : []}
+            onSelectionChange={handleEngagementChange}
+            onAddNew={handleAddNewEngagement}
+            placeholder="Hot / Warm / Cold..."
+          />
+
+          <InputField
+            label="Date Met"
+            type="date"
+            name="dateMet"
+            value={formData.dateMet || ''}
+            onChange={handleChange}
+          />
+
+          <InputField
+            label="Date Created"
+            type="date"
+            name="dateCreated"
+            value={formData.dateCreated || ''}
+            onChange={handleChange}
           />
         </div>
       </div>
@@ -260,39 +376,38 @@ export default function LeadForm({ onAddLead, isLoading = false }: LeadFormProps
         </div>
       </div>
 
-      {/* Campaign & Market */}
+      {/* Campaign & Market - With Dropdowns */}
       <div className="mb-8">
         <h3 className="text-sm font-semibold text-gray-900 mb-4 flex items-center gap-2">
           <span>🎯</span> Campaigns & Markets
         </h3>
         <div className="grid grid-cols-1 gap-5">
-          <FormField label="Tags">
-            <input
-              type="text"
-              value={tagsInput}
-              onChange={(e) => setTagsInput(e.target.value)}
-              placeholder="Comma-separated: VIP, Hot Lead, Follow-up"
-              className="w-full px-4 py-3 bg-white border-2 border-gray-200 rounded-lg focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 focus:outline-none transition-all text-gray-900 placeholder-gray-400"
-            />
-          </FormField>
-          <FormField label="Campaign IDs">
-            <input
-              type="text"
-              value={campaignInput}
-              onChange={(e) => setCampaignInput(e.target.value)}
-              placeholder="Comma-separated: CAMP123, CAMP456"
-              className="w-full px-4 py-3 bg-white border-2 border-gray-200 rounded-lg focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 focus:outline-none transition-all text-gray-900 placeholder-gray-400"
-            />
-          </FormField>
-          <FormField label="Market IDs">
-            <input
-              type="text"
-              value={marketInput}
-              onChange={(e) => setMarketInput(e.target.value)}
-              placeholder="Comma-separated: MARKET1, MARKET2"
-              className="w-full px-4 py-3 bg-white border-2 border-gray-200 rounded-lg focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 focus:outline-none transition-all text-gray-900 placeholder-gray-400"
-            />
-          </FormField>
+          <MultiSelectDropdown
+            label="Tags"
+            options={options.tags}
+            selected={formData.tags || []}
+            onSelectionChange={handleTagsChange}
+            onAddNew={handleAddNewTag}
+            placeholder="Hot Lead, Open House, Follow-up..."
+          />
+
+          <MultiSelectDropdown
+            label="Campaign IDs"
+            options={options.campaignIds}
+            selected={formData.campaignIds || []}
+            onSelectionChange={handleCampaignChange}
+            onAddNew={handleAddNewCampaign}
+            placeholder="CAMP123, CAMP456..."
+          />
+
+          <MultiSelectDropdown
+            label="Market IDs"
+            options={options.marketIds}
+            selected={formData.marketIds || []}
+            onSelectionChange={handleMarketChange}
+            onAddNew={handleAddNewMarket}
+            placeholder="MARKET1, MARKET2..."
+          />
         </div>
       </div>
 

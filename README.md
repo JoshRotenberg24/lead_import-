@@ -1,36 +1,84 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Lead Import Tool - Form-Based
 
-## Getting Started
+A web application for adding leads and exporting as CSV for AgentWebsite import.
 
-First, run the development server:
+## Features
+
+### Lead Entry
+- Form-based interface for individual lead entry
+- 17 fields per lead (Name, Email, Phone, Address, City, State, Zip, Birthday, Type, Anniversary, Pipeline, Texting, Tags, CampaignIDs, MarketIDs, Note, Source)
+- Real-time validation
+- Duplicate email detection
+
+### Lead Management
+- View all added leads in a table
+- Remove individual leads
+- Clear all leads at once
+- Live count of total leads
+
+### Export
+- Download leads as CSV
+- Formatted for AgentWebsite Control Panel import
+- Timestamp in filename
+
+## Quick Start
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Visit `http://localhost:3000`
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Deployment
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### Vercel (Recommended for Next.js)
 
-## Learn More
+1. Push to GitHub
+2. Go to https://vercel.com/new
+3. Import this repository
+4. Deploy (automatic)
 
-To learn more about Next.js, take a look at the following resources:
+App will be live with auto-deployments on push.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Workflow
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+1. Fill out lead form with contact details
+2. Click "Add Lead" to add to list
+3. Repeat for each lead (or add one at a time)
+4. Review leads in the preview table
+5. Click "Download CSV" when done
+6. Log into AgentWebsite Control Panel
+7. Use Import function to upload the CSV file
 
-## Deploy on Vercel
+## Architecture
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+```
+app/
+  ├── page.tsx           # Main lead entry page
+  ├── layout.tsx         # Layout wrapper
+  └── api/
+      ├── template/      # Template CSV download
+      ├── process-csv/   # CSV validation (legacy)
+      └── webhooks/lts/  # LTS webhook receiver (optional)
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+src/
+  ├── components/
+  │   ├── LeadForm.tsx   # Lead entry form
+  │   ├── CSVPreview.tsx # Table preview (legacy)
+  │   └── FileUpload.tsx # File upload (legacy)
+  ├── lib/
+  │   ├── fieldMapping.ts    # Field conversion logic
+  │   ├── csvProcessor.ts    # CSV validation (legacy)
+  │   └── ltsParser.ts       # LTS webhook parser
+  └── types/
+      ├── contacts.ts    # Contact interfaces
+      ├── validation.ts  # Validation helpers
+      └── lts.ts         # LTS webhook types
+```
+
+## Notes
+
+- AgentWebsite's LTS API is one-way outbound only
+- Final import to AgentWebsite must be done manually in Control Panel
+- This tool prepares the data for that step

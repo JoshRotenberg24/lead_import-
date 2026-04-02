@@ -1,0 +1,257 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// User model for authentication
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  leads      Lead[]
+  templates  EmailTemplate[]
+  campaigns  Campaign[]
+  automations Automation[]
+
+  @@map("users")
+}
+
+// Lead model - core contact data
+model Lead {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Basic info
+  name      String
+  email     String
+  firstName String?
+  lastName  String?
+  phone     String?
+
+  // Address
+  address   String?
+  city      String?
+  state     String?
+  zip       String?
+
+  // Additional fields
+  birthday  String?   // ISO date
+  anniversary String? // ISO date
+  type      String?   // Lead, Client, etc
+  pipeline  String?   // Sales stage
+  texting   String?   // Yes/No
+  note      String?
+
+  // CRM-specific fields
+  engagementRating String? // Hot/Warm/Cold
+  dateMet   String?   // ISO date
+  source    String?   // Lead source
+  tags      String[]  @default([])
+  campaignIds String[] @default([])
+  marketIds String[]  @default([])
+
+  // Relationships
+  automations LeadAutomation[]
+  emailLogs   EmailLog[]
+  imports     LeadImport[]
+
+  // Metadata
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@index([email])
+  @@map("leads")
+}
+
+// Email template model
+model EmailTemplate {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  name      String
+  subject   String
+  htmlBody  String
+  textBody  String?
+  category  String   // birthday, anniversary, holiday, campaign, etc
+  tags      String[] @default([])
+
+  // Relationships
+  campaigns Campaign[]
+  automations Automation[]
+  emailLogs EmailLog[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@map("email_templates")
+}
+
+// Campaign model
+model Campaign {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  name      String
+  description String?
+  templateId String
+  template   EmailTemplate @relation(fields: [templateId], references: [id])
+
+  status    String   @default("draft") // draft, active, paused, completed
+  startDate DateTime?
+  endDate   DateTime?
+
+  // Email settings
+  fromName  String?
+  fromEmail String?
+  replyTo   String?
+
+  // Targeting
+  targetTags String[]  @default([])
+  targetSources String[] @default([])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@map("campaigns")
+}
+
+// Automation model - rules for automatic emails
+model Automation {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  name      String
+  description String?
+  type      String   // birthday, anniversary, holiday, manual_trigger
+  templateId String
+  template   EmailTemplate @relation(fields: [templateId], references: [id])
+
+  // Birthday/Anniversary settings
+  triggerField String?  // birthday, anniversary, custom_date
+  daysBefore  Int      @default(0)
+  isActive    Boolean  @default(true)
+
+  // Holiday settings (for holiday automation)
+  holidayDate String?  // ISO date
+  holidayName String?
+
+  // Tracking
+  totalSent   Int      @default(0)
+  lastRun     DateTime?
+
+  // Relationships
+  leadAutomations LeadAutomation[]
+  emailLogs EmailLog[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@map("automations")
+}
+
+// LeadAutomation - tracks automation enrollment for leads
+model LeadAutomation {
+  id        String   @id @default(cuid())
+  leadId    String
+  lead      Lead     @relation(fields: [leadId], references: [id], onDelete: Cascade)
+
+  automationId String
+  automation   Automation @relation(fields: [automationId], references: [id], onDelete: Cascade)
+
+  status    String   @default("active") // active, completed, paused
+  nextRun   DateTime?
+  lastRun   DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([leadId, automationId])
+  @@index([leadId])
+  @@index([automationId])
+  @@map("lead_automations")
+}
+
+// Email log model - tracks sent emails
+model EmailLog {
+  id        String   @id @default(cuid())
+  leadId    String
+  lead      Lead     @relation(fields: [leadId], references: [id], onDelete: Cascade)
+
+  templateId String
+  template   EmailTemplate @relation(fields: [templateId], references: [id])
+
+  automationId String?
+  automation   Automation? @relation(fields: [automationId], references: [id], onDelete: SetNull)
+
+  subject   String
+  fromName  String?
+  fromEmail String?
+  toEmail   String
+
+  status    String   @default("sent") // sent, failed, bounced, opened, clicked
+  openedAt  DateTime?
+  clickedAt DateTime?
+  error     String?
+
+  createdAt DateTime @default(now())
+
+  @@index([leadId])
+  @@index([templateId])
+  @@map("email_logs")
+}
+
+// Lead import tracking
+model LeadImport {
+  id        String   @id @default(cuid())
+
+  // Import details
+  fileName  String
+  totalRows Int
+  validRows Int
+  errorRows Int
+
+  // Status tracking
+  status    String   @default("completed") // pending, processing, completed, failed
+
+  // Results
+  importedLeadIds String[] @default([])
+  errorDetails    String?
+
+  leads     Lead[]
+
+  createdAt DateTime @default(now())
+
+  @@map("lead_imports")
+}
+
+// System log for debugging
+model SystemLog {
+  id        String   @id @default(cuid())
+  type      String   // error, warning, info
+  message   String
+  metadata  String?  // JSON serialized
+
+  createdAt DateTime @default(now())
+
+  @@index([type])
+  @@index([createdAt])
+  @@map("system_logs")
+}

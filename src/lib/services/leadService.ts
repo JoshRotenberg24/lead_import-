@@ -4,6 +4,7 @@
  */
 
 import { prisma } from '@/lib/prisma';
+import { Lead } from '@/generated/prisma/client';
 
 /**
  * Filter leads by multiple criteria
@@ -82,11 +83,12 @@ export async function addTagsToLead(leadId: string, tags: string[]) {
 
   if (!lead) throw new Error('Lead not found');
 
-  const newTags = Array.from(new Set([...(lead.tags || []), ...tags]));
+  const existingTags = lead.tags ? JSON.parse(lead.tags) : [];
+  const newTags = Array.from(new Set([...existingTags, ...tags]));
 
   return prisma.lead.update({
     where: { id: leadId },
-    data: { tags: newTags },
+    data: { tags: JSON.stringify(newTags) },
   });
 }
 
@@ -100,11 +102,12 @@ export async function removeTagsFromLead(leadId: string, tags: string[]) {
 
   if (!lead) throw new Error('Lead not found');
 
-  const newTags = (lead.tags || []).filter(t => !tags.includes(t));
+  const existingTags = lead.tags ? JSON.parse(lead.tags) : [];
+  const newTags = existingTags.filter((t: string) => !tags.includes(t));
 
   return prisma.lead.update({
     where: { id: leadId },
-    data: { tags: newTags },
+    data: { tags: JSON.stringify(newTags) },
   });
 }
 
@@ -164,7 +167,7 @@ export async function exportLeads(userId: string) {
     'Source',
   ];
 
-  const rows = leads.map(lead => [
+  const rows = leads.map((lead: Lead) => [
     lead.name,
     lead.email,
     lead.phone || '',
@@ -177,9 +180,9 @@ export async function exportLeads(userId: string) {
     lead.anniversary || '',
     lead.pipeline || '',
     lead.texting || '',
-    (lead.tags || []).join(','),
-    (lead.campaignIds || []).join(','),
-    (lead.marketIds || []).join(','),
+    (lead.tags ? JSON.parse(lead.tags) : []).join(','),
+    (lead.campaignIds ? JSON.parse(lead.campaignIds) : []).join(','),
+    (lead.marketIds ? JSON.parse(lead.marketIds) : []).join(','),
     lead.note || '',
     lead.source || '',
   ]);
@@ -198,15 +201,15 @@ export async function getLeadStats(userId: string) {
   const stats = {
     total: leads.length,
     byEngagement: {
-      hot: leads.filter(l => l.engagementRating === 'Hot').length,
-      warm: leads.filter(l => l.engagementRating === 'Warm').length,
-      cold: leads.filter(l => l.engagementRating === 'Cold').length,
+      hot: leads.filter((l: Lead) => l.engagementRating === 'Hot').length,
+      warm: leads.filter((l: Lead) => l.engagementRating === 'Warm').length,
+      cold: leads.filter((l: Lead) => l.engagementRating === 'Cold').length,
     },
     bySource: {} as Record<string, number>,
     byPipeline: {} as Record<string, number>,
   };
 
-  leads.forEach(lead => {
+  leads.forEach((lead: Lead) => {
     if (lead.source) {
       stats.bySource[lead.source] = (stats.bySource[lead.source] || 0) + 1;
     }

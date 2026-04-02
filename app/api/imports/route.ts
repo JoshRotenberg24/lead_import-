@@ -57,9 +57,9 @@ export async function POST(request: NextRequest) {
             anniversary: awContact.Anniversary,
             pipeline: awContact.Pipeline,
             texting: awContact.Texting,
-            tags: awContact.Tags ? awContact.Tags.split(',').map(t => t.trim()) : [],
-            campaignIds: awContact.CampaignIDs ? awContact.CampaignIDs.split(',').map(c => c.trim()) : [],
-            marketIds: awContact.MarketIDs ? awContact.MarketIDs.split(',').map(m => m.trim()) : [],
+            tags: awContact.Tags ? JSON.stringify(awContact.Tags.split(',').map(t => t.trim())) : '[]',
+            campaignIds: awContact.CampaignIDs ? JSON.stringify(awContact.CampaignIDs.split(',').map(c => c.trim())) : '[]',
+            marketIds: awContact.MarketIDs ? JSON.stringify(awContact.MarketIDs.split(',').map(m => m.trim())) : '[]',
             note: awContact.Note,
             source: awContact.Source,
           },
@@ -79,7 +79,7 @@ export async function POST(request: NextRequest) {
     await prisma.leadImport.update({
       where: { id: importRecord.id },
       data: {
-        importedLeadIds: createdLeads,
+        importedLeadIds: JSON.stringify(createdLeads),
       },
     });
 

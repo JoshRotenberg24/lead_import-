@@ -4,6 +4,7 @@
  */
 
 import { prisma } from '@/lib/prisma';
+import { EmailLog } from '@/generated/prisma/client';
 
 export interface SendEmailOptions {
   leadId: string;
@@ -123,11 +124,11 @@ export async function getEmailStats(userId: string) {
 
   const stats = {
     total: logs.length,
-    sent: logs.filter(l => l.status === 'sent').length,
-    opened: logs.filter(l => l.status === 'opened').length,
-    clicked: logs.filter(l => l.status === 'clicked').length,
-    failed: logs.filter(l => l.status === 'failed').length,
-    bounced: logs.filter(l => l.status === 'bounced').length,
+    sent: logs.filter((l: EmailLog) => l.status === 'sent').length,
+    opened: logs.filter((l: EmailLog) => l.status === 'opened').length,
+    clicked: logs.filter((l: EmailLog) => l.status === 'clicked').length,
+    failed: logs.filter((l: EmailLog) => l.status === 'failed').length,
+    bounced: logs.filter((l: EmailLog) => l.status === 'bounced').length,
   };
 
   return stats;

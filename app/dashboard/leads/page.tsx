@@ -1,6 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useSession } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
 import AutomationEnrollmentModal from '@/components/AutomationEnrollmentModal';
 import { Lead } from '@/generated/prisma/client';
 
@@ -19,6 +21,9 @@ interface LeadStats {
 }
 
 export default function LeadsDashboard() {
+  const { data: session, status } = useSession();
+  const router = useRouter();
+
   const [leads, setLeads] = useState<Lead[]>([]);
   const [filteredLeads, setFilteredLeads] = useState<Lead[]>([]);
   const [stats, setStats] = useState<LeadStats | null>(null);
@@ -35,8 +40,14 @@ export default function LeadsDashboard() {
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc');
   const [showEnrollModal, setShowEnrollModal] = useState(false);
 
-  // Mock userId - in real app, get from auth
-  const userId = 'test-user-1';
+  // Redirect to login if not authenticated
+  useEffect(() => {
+    if (status === 'unauthenticated') {
+      router.push('/login');
+    }
+  }, [status, router]);
+
+  const userId = (session?.user as any)?.id || '';
 
   // Fetch leads and stats
   useEffect(() => {

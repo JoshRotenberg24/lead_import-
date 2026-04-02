@@ -4,6 +4,7 @@
  */
 
 import { prisma } from '@/lib/prisma';
+import { EmailLog } from '@/generated/prisma/client';
 import { sendEmail } from './emailService';
 
 /**
@@ -223,7 +224,7 @@ export async function getAutomationStats(automationId: string) {
     automation,
     enrolled: enrolledCount,
     emailsSent: automation.totalSent,
-    emailsOpened: emailLogs.filter(l => l.status === 'opened').length,
-    emailsClicked: emailLogs.filter(l => l.status === 'clicked').length,
+    emailsOpened: emailLogs.filter((l: EmailLog) => l.status === 'opened').length,
+    emailsClicked: emailLogs.filter((l: EmailLog) => l.status === 'clicked').length,
   };
 }

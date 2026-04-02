@@ -1,17 +1,28 @@
-import { PrismaClient } from '../generated/prisma/client';
-import { PrismaPg } from '@prisma/adapter-pg';
-import pg from 'pg';
+import { PrismaClient as BasePrismaClient } from '../generated/prisma/client';
 
-const globalForPrisma = global as unknown as { prisma: PrismaClient };
-
-function initPrisma() {
-  // Use direct database connection with PostgreSQL adapter
-  const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL });
-  const adapter = new PrismaPg(pool);
-
-  return new PrismaClient({ adapter });
+declare global {
+  var prisma: any;
 }
 
-export const prisma = globalForPrisma.prisma || initPrisma();
+let prisma: any;
 
-if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma;
+try {
+  if (process.env.NODE_ENV === 'production') {
+    prisma = new (BasePrismaClient as any)({
+      log: ['error'],
+    });
+  } else {
+    if (!global.prisma) {
+      global.prisma = new (BasePrismaClient as any)({
+        log: ['error'],
+      });
+    }
+    prisma = global.prisma;
+  }
+} catch (error) {
+  console.error('Failed to initialize Prisma:', error);
+  // Fallback for build-time execution
+  prisma = null;
+}
+
+export { prisma };

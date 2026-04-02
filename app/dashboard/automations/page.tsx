@@ -1,6 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useSession } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
 import { Automation, EmailTemplate } from '@/generated/prisma/client';
 
 interface AutomationWithTemplate extends Automation {
@@ -9,6 +11,9 @@ interface AutomationWithTemplate extends Automation {
 }
 
 export default function AutomationsDashboard() {
+  const { data: session, status } = useSession();
+  const router = useRouter();
+
   const [automations, setAutomations] = useState<AutomationWithTemplate[]>([]);
   const [templates, setTemplates] = useState<EmailTemplate[]>([]);
   const [loading, setLoading] = useState(true);
@@ -22,8 +27,14 @@ export default function AutomationsDashboard() {
     daysBefore: '0',
   });
 
-  // Mock userId
-  const userId = 'test-user-1';
+  // Redirect to login if not authenticated
+  useEffect(() => {
+    if (status === 'unauthenticated') {
+      router.push('/login');
+    }
+  }, [status, router]);
+
+  const userId = (session?.user as any)?.id || '';
 
   // Fetch automations and templates
   useEffect(() => {

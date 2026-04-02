@@ -7,7 +7,7 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "sqlite"
 }
 
 // User model for authentication
@@ -57,9 +57,9 @@ model Lead {
   engagementRating String? // Hot/Warm/Cold
   dateMet   String?   // ISO date
   source    String?   // Lead source
-  tags      String[]  @default([])
-  campaignIds String[] @default([])
-  marketIds String[]  @default([])
+  tags      String    @default("[]") // JSON array
+  campaignIds String  @default("[]") // JSON array
+  marketIds String    @default("[]") // JSON array
 
   // Relationships
   automations LeadAutomation[]
@@ -86,7 +86,7 @@ model EmailTemplate {
   htmlBody  String
   textBody  String?
   category  String   // birthday, anniversary, holiday, campaign, etc
-  tags      String[] @default([])
+  tags      String   @default("[]") // JSON array
 
   // Relationships
   campaigns Campaign[]
@@ -121,8 +121,8 @@ model Campaign {
   replyTo   String?
 
   // Targeting
-  targetTags String[]  @default([])
-  targetSources String[] @default([])
+  targetTags String    @default("[]") // JSON array
+  targetSources String @default("[]") // JSON array
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -232,7 +232,7 @@ model LeadImport {
   status    String   @default("completed") // pending, processing, completed, failed
 
   // Results
-  importedLeadIds String[] @default([])
+  importedLeadIds String @default("[]") // JSON array
   errorDetails    String?
 
   leads     Lead[]

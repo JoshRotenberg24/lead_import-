@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 import LeadForm from '@/components/LeadForm';
-import CSVPreview from '@/components/CSVPreview';
 import { Contact, AgentWebsiteContact, CSV_TEMPLATE_HEADERS } from '@/types/contacts';
 import { contactToAgentWebsite } from '@/lib/fieldMapping';
 import Papa from 'papaparse';
@@ -12,7 +11,6 @@ export default function Home() {
   const [error, setError] = useState<string | null>(null);
 
   const handleAddLead = (lead: Contact) => {
-    // Basic validation
     if (!lead.name?.trim()) {
       setError('Name is required');
       return;
@@ -22,7 +20,6 @@ export default function Home() {
       return;
     }
 
-    // Check for duplicate email
     if (leads.some((l) => l.email?.toLowerCase() === lead.email?.toLowerCase())) {
       setError(`Email "${lead.email}" already added`);
       return;
@@ -43,10 +40,8 @@ export default function Home() {
     }
 
     try {
-      // Convert leads to AgentWebsite format
       const awLeads: AgentWebsiteContact[] = leads.map(contactToAgentWebsite);
 
-      // Create CSV
       const rows = [CSV_TEMPLATE_HEADERS];
       awLeads.forEach((lead) => {
         rows.push([
@@ -86,117 +81,138 @@ export default function Home() {
   };
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
+    <main className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
       <div className="container mx-auto px-4 py-12">
         {/* Header */}
-        <div className="max-w-4xl mx-auto mb-12">
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">
+        <div className="max-w-5xl mx-auto mb-12 text-center">
+          <div className="inline-block mb-4">
+            <span className="text-5xl">🚀</span>
+          </div>
+          <h1 className="text-5xl font-bold text-white mb-3">
             Lead Import Tool
           </h1>
-          <p className="text-gray-600">
-            Add leads one at a time. Download as CSV when done.
+          <p className="text-xl text-gray-300">
+            Add leads one by one and download as CSV for AgentWebsite
           </p>
         </div>
 
-        {/* Main Content */}
-        <div className="max-w-4xl mx-auto space-y-8">
-          {/* Error Messages */}
-          {error && (
-            <div className="bg-white rounded-lg shadow-sm p-4 border border-red-200">
-              <div className="flex items-center gap-2 text-red-600">
-                <svg className="h-5 w-5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                  <path
-                    fillRule="evenodd"
-                    d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-                <p className="font-medium">{error}</p>
+        {/* Error Alert */}
+        {error && (
+          <div className="max-w-5xl mx-auto mb-8">
+            <div className="bg-red-900/50 border-l-4 border-red-500 p-4 rounded-lg backdrop-blur-sm">
+              <div className="flex items-center gap-3">
+                <span className="text-2xl">⚠️</span>
+                <p className="text-red-200 font-medium">{error}</p>
               </div>
             </div>
-          )}
+          </div>
+        )}
 
+        {/* Main Content */}
+        <div className="max-w-5xl mx-auto space-y-8">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* Left: Form */}
+            {/* Left: Form - 2/3 width */}
             <div className="lg:col-span-2">
               <LeadForm onAddLead={handleAddLead} />
             </div>
 
-            {/* Right: Summary & Actions */}
+            {/* Right: Summary - 1/3 width */}
             <div className="space-y-6">
-              {/* Summary */}
-              <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
-                <h2 className="text-lg font-semibold text-gray-900 mb-4">Summary</h2>
+              {/* Summary Card */}
+              <div className="bg-gradient-to-br from-indigo-600 to-blue-600 rounded-2xl shadow-xl p-8 text-white">
+                <div className="mb-6">
+                  <h2 className="text-sm font-semibold text-indigo-100 mb-2">TOTAL LEADS</h2>
+                  <p className="text-5xl font-bold">{leads.length}</p>
+                </div>
 
-                <div className="space-y-4">
-                  <div>
-                    <p className="text-sm text-gray-600">Total Leads</p>
-                    <p className="text-3xl font-bold text-blue-600">{leads.length}</p>
-                  </div>
-
-                  {leads.length > 0 && (
+                {leads.length > 0 && (
+                  <>
                     <button
                       onClick={handleDownloadCSV}
-                      className="w-full px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition-colors"
+                      className="w-full px-6 py-3 bg-white text-indigo-600 font-semibold rounded-lg hover:bg-indigo-50 transition-all mb-3 active:scale-95"
                     >
-                      Download CSV
+                      ⬇️ Download CSV
                     </button>
-                  )}
 
-                  {leads.length > 0 && (
                     <button
                       onClick={() => {
                         setLeads([]);
                         setError(null);
                       }}
-                      className="w-full px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg font-medium transition-colors"
+                      className="w-full px-6 py-3 bg-white/20 hover:bg-white/30 text-white font-semibold rounded-lg transition-all active:scale-95"
                     >
-                      Clear All
+                      🗑️ Clear All
                     </button>
-                  )}
-                </div>
+                  </>
+                )}
+
+                {leads.length === 0 && (
+                  <div className="text-center py-4">
+                    <p className="text-indigo-100 text-sm">Add leads to get started</p>
+                  </div>
+                )}
               </div>
 
-              {/* Info Box */}
-              <div className="bg-blue-50 rounded-lg border border-blue-200 p-4">
-                <h3 className="text-sm font-semibold text-blue-900 mb-2">How it works</h3>
-                <ol className="text-xs text-blue-800 space-y-1 list-decimal list-inside">
-                  <li>Fill form & click "Add Lead"</li>
-                  <li>Repeat for each lead</li>
-                  <li>Click "Download CSV"</li>
-                  <li>Upload in Control Panel</li>
+              {/* Help Card */}
+              <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-6 text-white">
+                <h3 className="text-sm font-semibold mb-4 flex items-center gap-2">
+                  <span>💡</span> Quick Start
+                </h3>
+                <ol className="text-sm space-y-3 text-gray-300">
+                  <li className="flex gap-3">
+                    <span className="font-bold text-indigo-400">1</span>
+                    <span>Fill in the form</span>
+                  </li>
+                  <li className="flex gap-3">
+                    <span className="font-bold text-indigo-400">2</span>
+                    <span>Click "Add Lead"</span>
+                  </li>
+                  <li className="flex gap-3">
+                    <span className="font-bold text-indigo-400">3</span>
+                    <span>Repeat as needed</span>
+                  </li>
+                  <li className="flex gap-3">
+                    <span className="font-bold text-indigo-400">4</span>
+                    <span>Download CSV</span>
+                  </li>
                 </ol>
               </div>
             </div>
           </div>
 
-          {/* Leads List */}
+          {/* Leads Table */}
           {leads.length > 0 && (
-            <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
-              <h2 className="text-lg font-semibold text-gray-900 mb-4">Added Leads ({leads.length})</h2>
+            <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl overflow-hidden">
+              <div className="px-8 py-6 border-b border-white/10">
+                <h2 className="text-2xl font-bold text-white flex items-center gap-2">
+                  <span>📋</span> Your Leads ({leads.length})
+                </h2>
+              </div>
 
               <div className="overflow-x-auto">
-                <table className="min-w-full">
-                  <thead className="bg-gray-100 border-b border-gray-200">
+                <table className="w-full">
+                  <thead className="bg-white/5 border-b border-white/10">
                     <tr>
-                      <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">Name</th>
-                      <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">Email</th>
-                      <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">Phone</th>
-                      <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">City</th>
-                      <th className="px-4 py-2 text-center text-sm font-medium text-gray-700">Action</th>
+                      <th className="px-8 py-4 text-left text-sm font-semibold text-gray-300">#</th>
+                      <th className="px-8 py-4 text-left text-sm font-semibold text-gray-300">Name</th>
+                      <th className="px-8 py-4 text-left text-sm font-semibold text-gray-300">Email</th>
+                      <th className="px-8 py-4 text-left text-sm font-semibold text-gray-300">Phone</th>
+                      <th className="px-8 py-4 text-left text-sm font-semibold text-gray-300">City</th>
+                      <th className="px-8 py-4 text-center text-sm font-semibold text-gray-300">Action</th>
                     </tr>
                   </thead>
-                  <tbody>
+                  <tbody className="divide-y divide-white/5">
                     {leads.map((lead, idx) => (
-                      <tr key={idx} className="border-b border-gray-200 hover:bg-gray-50">
-                        <td className="px-4 py-2 text-sm text-gray-900">{lead.name}</td>
-                        <td className="px-4 py-2 text-sm text-gray-600">{lead.email}</td>
-                        <td className="px-4 py-2 text-sm text-gray-600">{lead.phone || '-'}</td>
-                        <td className="px-4 py-2 text-sm text-gray-600">{lead.city || '-'}</td>
-                        <td className="px-4 py-2 text-center">
+                      <tr key={idx} className="hover:bg-white/5 transition-colors">
+                        <td className="px-8 py-4 text-sm text-gray-400">{idx + 1}</td>
+                        <td className="px-8 py-4 text-sm text-white font-medium">{lead.name}</td>
+                        <td className="px-8 py-4 text-sm text-gray-300">{lead.email}</td>
+                        <td className="px-8 py-4 text-sm text-gray-400">{lead.phone || '—'}</td>
+                        <td className="px-8 py-4 text-sm text-gray-400">{lead.city || '—'}</td>
+                        <td className="px-8 py-4 text-center">
                           <button
                             onClick={() => handleRemoveLead(idx)}
-                            className="text-red-600 hover:text-red-800 text-sm font-medium"
+                            className="text-red-400 hover:text-red-300 text-sm font-semibold transition-colors"
                           >
                             Remove
                           </button>
@@ -208,6 +224,11 @@ export default function Home() {
               </div>
             </div>
           )}
+        </div>
+
+        {/* Footer */}
+        <div className="max-w-5xl mx-auto mt-16 text-center text-gray-500 text-sm">
+          <p>Prepare your leads for AgentWebsite with ease ✨</p>
         </div>
       </div>
     </main>

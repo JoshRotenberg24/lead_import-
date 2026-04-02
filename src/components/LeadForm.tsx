@@ -46,7 +46,6 @@ export default function LeadForm({ onAddLead, isLoading = false }: LeadFormProps
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Validate required fields
     if (!formData.name?.trim()) {
       alert('Name is required');
       return;
@@ -56,7 +55,6 @@ export default function LeadForm({ onAddLead, isLoading = false }: LeadFormProps
       return;
     }
 
-    // Parse comma-separated fields
     const lead: Contact = {
       ...formData,
       name: formData.name.trim(),
@@ -68,7 +66,6 @@ export default function LeadForm({ onAddLead, isLoading = false }: LeadFormProps
 
     onAddLead(lead);
 
-    // Reset form
     setFormData({
       name: '',
       email: '',
@@ -95,273 +92,233 @@ export default function LeadForm({ onAddLead, isLoading = false }: LeadFormProps
     setMarketInput('');
   };
 
-  return (
-    <form onSubmit={handleSubmit} className="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
-      <h2 className="text-lg font-semibold text-gray-900 mb-6">Add a Lead</h2>
+  const FormField = ({ label, required, children }: { label: string; required?: boolean; children: React.ReactNode }) => (
+    <div>
+      <label className="block text-sm font-medium text-gray-800 mb-2">
+        {label}
+        {required && <span className="text-red-500 ml-1">*</span>}
+      </label>
+      {children}
+    </div>
+  );
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-        {/* Name */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Name *
-          </label>
-          <input
-            type="text"
+  const InputField = (props: React.InputHTMLAttributes<HTMLInputElement> & { label: string; required?: boolean }) => {
+    const { label, required, ...inputProps } = props;
+    return (
+      <FormField label={label} required={required}>
+        <input
+          {...inputProps}
+          className="w-full px-4 py-3 bg-white border-2 border-gray-200 rounded-lg focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 focus:outline-none transition-all text-gray-900 placeholder-gray-400"
+        />
+      </FormField>
+    );
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="bg-white rounded-2xl shadow-lg p-8 border border-gray-100">
+      <div className="mb-8">
+        <h2 className="text-2xl font-bold text-gray-900">📝 Add a Lead</h2>
+        <p className="text-gray-600 mt-2 text-sm">Fill in the details below. Name & Email are required.</p>
+      </div>
+
+      {/* Required Fields Section */}
+      <div className="bg-gradient-to-r from-indigo-50 to-blue-50 rounded-xl p-6 mb-8 border border-indigo-100">
+        <h3 className="text-sm font-semibold text-indigo-900 mb-4 flex items-center gap-2">
+          <span>⭐</span> Required Information
+        </h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+          <InputField
+            label="Name"
             name="name"
             value={formData.name || ''}
             onChange={handleChange}
-            placeholder="Full name"
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            placeholder="e.g., John Smith"
             required
           />
-        </div>
-
-        {/* Email */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Email *
-          </label>
-          <input
+          <InputField
+            label="Email"
             type="email"
             name="email"
             value={formData.email || ''}
             onChange={handleChange}
-            placeholder="email@example.com"
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            placeholder="e.g., john@example.com"
             required
           />
         </div>
+      </div>
 
-        {/* Phone */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Phone
-          </label>
-          <input
+      {/* Contact Information */}
+      <div className="mb-8">
+        <h3 className="text-sm font-semibold text-gray-900 mb-4 flex items-center gap-2">
+          <span>📞</span> Contact Information
+        </h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+          <InputField
+            label="Phone"
             type="tel"
             name="phone"
             value={formData.phone || ''}
             onChange={handleChange}
             placeholder="555-123-4567"
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           />
-        </div>
-
-        {/* Address */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Address
-          </label>
-          <input
-            type="text"
+          <InputField
+            label="Address"
             name="address"
             value={formData.address || ''}
             onChange={handleChange}
             placeholder="Street address"
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           />
-        </div>
-
-        {/* City */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            City
-          </label>
-          <input
-            type="text"
+          <InputField
+            label="City"
             name="city"
             value={formData.city || ''}
             onChange={handleChange}
             placeholder="City"
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           />
-        </div>
-
-        {/* State */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            State
-          </label>
-          <input
-            type="text"
+          <InputField
+            label="State"
             name="state"
             value={formData.state || ''}
             onChange={handleChange}
             placeholder="IL"
             maxLength={2}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent uppercase"
           />
-        </div>
-
-        {/* Zip */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Zip
-          </label>
-          <input
-            type="text"
+          <InputField
+            label="Zip"
             name="zip"
             value={formData.zip || ''}
             onChange={handleChange}
             placeholder="60601"
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           />
         </div>
+      </div>
 
-        {/* Birthday */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Birthday
-          </label>
-          <input
+      {/* Personal Details */}
+      <div className="mb-8">
+        <h3 className="text-sm font-semibold text-gray-900 mb-4 flex items-center gap-2">
+          <span>🎂</span> Personal Details
+        </h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+          <InputField
+            label="Birthday"
             type="date"
             name="birthday"
             value={formData.birthday || ''}
             onChange={handleChange}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           />
-        </div>
-
-        {/* Type */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Type
-          </label>
-          <input
-            type="text"
-            name="type"
-            value={formData.type || ''}
-            onChange={handleChange}
-            placeholder="Lead, Client, etc"
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          />
-        </div>
-
-        {/* Anniversary */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Anniversary
-          </label>
-          <input
+          <InputField
+            label="Anniversary"
             type="date"
             name="anniversary"
             value={formData.anniversary || ''}
             onChange={handleChange}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           />
         </div>
+      </div>
 
-        {/* Pipeline */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Pipeline
-          </label>
-          <input
-            type="text"
+      {/* Business Information */}
+      <div className="mb-8">
+        <h3 className="text-sm font-semibold text-gray-900 mb-4 flex items-center gap-2">
+          <span>💼</span> Business Information
+        </h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+          <InputField
+            label="Type"
+            name="type"
+            value={formData.type || ''}
+            onChange={handleChange}
+            placeholder="e.g., Lead, Client"
+          />
+          <InputField
+            label="Pipeline"
             name="pipeline"
             value={formData.pipeline || ''}
             onChange={handleChange}
-            placeholder="Sales stage"
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            placeholder="e.g., Qualified, Negotiating"
+          />
+          <div>
+            <FormField label="Texting">
+              <select
+                name="texting"
+                value={formData.texting || ''}
+                onChange={handleChange}
+                className="w-full px-4 py-3 bg-white border-2 border-gray-200 rounded-lg focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 focus:outline-none transition-all text-gray-900"
+              >
+                <option value="">Select...</option>
+                <option value="Yes">Yes</option>
+                <option value="No">No</option>
+              </select>
+            </FormField>
+          </div>
+          <InputField
+            label="Source"
+            name="source"
+            value={formData.source || ''}
+            onChange={handleChange}
+            placeholder="e.g., Website, Referral"
           />
         </div>
+      </div>
 
-        {/* Texting */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Texting
-          </label>
-          <select
-            name="texting"
-            value={formData.texting || ''}
-            onChange={handleChange}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          >
-            <option value="">Select...</option>
-            <option value="Yes">Yes</option>
-            <option value="No">No</option>
-          </select>
+      {/* Campaign & Market */}
+      <div className="mb-8">
+        <h3 className="text-sm font-semibold text-gray-900 mb-4 flex items-center gap-2">
+          <span>🎯</span> Campaigns & Markets
+        </h3>
+        <div className="grid grid-cols-1 gap-5">
+          <FormField label="Tags">
+            <input
+              type="text"
+              value={tagsInput}
+              onChange={(e) => setTagsInput(e.target.value)}
+              placeholder="Comma-separated: VIP, Hot Lead, Follow-up"
+              className="w-full px-4 py-3 bg-white border-2 border-gray-200 rounded-lg focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 focus:outline-none transition-all text-gray-900 placeholder-gray-400"
+            />
+          </FormField>
+          <FormField label="Campaign IDs">
+            <input
+              type="text"
+              value={campaignInput}
+              onChange={(e) => setCampaignInput(e.target.value)}
+              placeholder="Comma-separated: CAMP123, CAMP456"
+              className="w-full px-4 py-3 bg-white border-2 border-gray-200 rounded-lg focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 focus:outline-none transition-all text-gray-900 placeholder-gray-400"
+            />
+          </FormField>
+          <FormField label="Market IDs">
+            <input
+              type="text"
+              value={marketInput}
+              onChange={(e) => setMarketInput(e.target.value)}
+              placeholder="Comma-separated: MARKET1, MARKET2"
+              className="w-full px-4 py-3 bg-white border-2 border-gray-200 rounded-lg focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 focus:outline-none transition-all text-gray-900 placeholder-gray-400"
+            />
+          </FormField>
         </div>
       </div>
 
-      {/* Tags (comma-separated) */}
-      <div className="mb-4">
-        <label className="block text-sm font-medium text-gray-700 mb-1">
-          Tags (comma-separated)
-        </label>
-        <input
-          type="text"
-          value={tagsInput}
-          onChange={(e) => setTagsInput(e.target.value)}
-          placeholder="VIP, Hot Lead, Follow-up"
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-        />
-      </div>
-
-      {/* Campaign IDs (comma-separated) */}
-      <div className="mb-4">
-        <label className="block text-sm font-medium text-gray-700 mb-1">
-          Campaign IDs (comma-separated)
-        </label>
-        <input
-          type="text"
-          value={campaignInput}
-          onChange={(e) => setCampaignInput(e.target.value)}
-          placeholder="CAMP123, CAMP456"
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-        />
-      </div>
-
-      {/* Market IDs (comma-separated) */}
-      <div className="mb-4">
-        <label className="block text-sm font-medium text-gray-700 mb-1">
-          Market IDs (comma-separated)
-        </label>
-        <input
-          type="text"
-          value={marketInput}
-          onChange={(e) => setMarketInput(e.target.value)}
-          placeholder="MARKET1, MARKET2"
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-        />
-      </div>
-
-      {/* Note */}
-      <div className="mb-6">
-        <label className="block text-sm font-medium text-gray-700 mb-1">
-          Note
-        </label>
-        <textarea
-          name="note"
-          value={formData.note || ''}
-          onChange={handleChange}
-          placeholder="Additional notes"
-          rows={3}
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-        />
-      </div>
-
-      {/* Source */}
-      <div className="mb-6">
-        <label className="block text-sm font-medium text-gray-700 mb-1">
-          Source
-        </label>
-        <input
-          type="text"
-          name="source"
-          value={formData.source || ''}
-          onChange={handleChange}
-          placeholder="How did you get this lead?"
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-        />
+      {/* Notes */}
+      <div className="mb-8">
+        <h3 className="text-sm font-semibold text-gray-900 mb-4 flex items-center gap-2">
+          <span>📝</span> Additional Notes
+        </h3>
+        <FormField label="Note">
+          <textarea
+            name="note"
+            value={formData.note || ''}
+            onChange={handleChange}
+            placeholder="Any additional information..."
+            rows={3}
+            className="w-full px-4 py-3 bg-white border-2 border-gray-200 rounded-lg focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 focus:outline-none transition-all text-gray-900 placeholder-gray-400"
+          />
+        </FormField>
       </div>
 
       <button
         type="submit"
         disabled={isLoading}
-        className="w-full px-4 py-2 bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white rounded-lg font-medium transition-colors"
+        className="w-full px-6 py-4 bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 disabled:from-gray-400 disabled:to-gray-400 text-white font-semibold rounded-lg transition-all shadow-lg hover:shadow-xl active:scale-95"
       >
-        {isLoading ? 'Adding...' : 'Add Lead'}
+        {isLoading ? '⏳ Adding Lead...' : '✨ Add Lead'}
       </button>
     </form>
   );
